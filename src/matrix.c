@@ -51,8 +51,15 @@ void free_matrix(matrix m)
 matrix copy_matrix(matrix m)
 {
     matrix c = make_matrix(m.rows, m.cols);
-    // TODO: 1.1 - Fill in the new matrix
+    int len = (m.rows * m.cols) * sizeof(float);
+    memcpy(c.data,m.data,len);
     return c;
+}
+
+// given a matrix, row position i and col position j,
+// return the index in the matrix data arr
+int get_index(matrix m, int i, int j) {
+    return i*m.cols + j;
 }
 
 // Transpose a matrix
@@ -60,8 +67,15 @@ matrix copy_matrix(matrix m)
 // returns: matrix, result of transposition
 matrix transpose_matrix(matrix m)
 {
-    // TODO: 1.2 - Make a matrix the correct size, fill it in
-    matrix t = make_matrix(1,1);
+    int t_ind, m_ind;
+    matrix t = make_matrix(m.cols,m.rows);
+    for (int i=0; i<m.rows; i++) {
+        for (int j=0; j<m.cols; j++) {
+            t_ind = get_index(t,j,i);
+            m_ind = get_index(m,i,j);
+            t.data[t_ind] = m.data[m_ind];
+        }
+    }
     return t;
 }
 
@@ -73,7 +87,9 @@ void axpy_matrix(float a, matrix x, matrix y)
 {
     assert(x.cols == y.cols);
     assert(x.rows == y.rows);
-    // TODO: 1.3 - Perform the weighted sum, store result back in y
+    for (int i=0; i<(y.cols*y.rows); i++) {
+        y.data[i] = a*x.data[i] + y.data[i];
+    }
 }
 
 // Perform matrix multiplication a*b, return result
@@ -83,8 +99,24 @@ matrix matmul(matrix a, matrix b)
 {
     assert(a.cols == b.rows);
     matrix c = make_matrix(a.rows, b.cols);
-    // TODO: 1.4 - Implement matrix multiplication. Make sure it's fast!
-
+    int i,j,k;
+    int c_ind, a_ind, b_ind;
+    float sum;
+    // i -> iterate over A rows
+    for (i=0; i<a.rows; i++ ) {
+        // k -> iterate over B cols
+        for (k=0; k<b.cols; k++) {
+            sum=0;
+            // j -> iterate over A cols and B rows
+            for (j=0; j<a.cols; j++) {
+                a_ind = get_index(a,i,j);
+                b_ind = get_index(b,j,k);
+                sum = sum + a.data[a_ind]*b.data[b_ind];
+            }
+            c_ind = get_index(c,i,k);
+            c.data[c_ind] = sum;
+        }
+    }
     return c;
 }
 
